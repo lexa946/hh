@@ -1,9 +1,7 @@
-from typing import Tuple
-
 import requests
-from bs4 import BeautifulSoup, Tag
-from urllib.parse import urlparse
-from urllib.parse import parse_qs
+
+from HH.vacancy import VacancySmall
+from HH.html_parsers import HHHtmlParser
 
 
 class HHParser:
@@ -53,6 +51,38 @@ class HHParser:
         # TODO: Описать получение полного резюме
         pass
 
+    def get_vacancies(self, query: str, only_in_title=False, from_IT_compony=False) -> tuple[VacancySmall, ...]:
+        """
+            Получаем все вакансии по запросу.
+            Функция генератор, отдает вакансии по одной странице
+        :param only_in_title: Поиск только в названии вакансий
+        :param from_IT_compony: Поиск только от акредитованных IT компаний
+        """
+        query = query.replace(" ", "+")
+        page = 0
+        while True:
+            # response = self._session.get(self._host + f"/vacancies/{query}?page={page}")
+            url = f"/search/vacancy?page={page}" \
+                  f"&order_by=relevance" \
+                  f"&search_period=0" \
+                  f"&items_on_page=20" \
+                  f"&hhtmFrom=vacancy_search_filter" \
+                  f"&text={query}"
+            if only_in_title:
+                url += "&search_field=name"
+            if from_IT_compony:
+                url += "&label=accredited_it"
+
+            response = self._session.get(self._host + f"/search/vacancy?page={page}"
+                                                      f"")
+            response.raise_for_status()
+            vacancies = HHHtmlParser.get_vacancies_small(response.text)
+
+            if not vacancies: break
+
+            yield vacancies
+
+            page += 1
 
     @property
     def host(self):
@@ -61,47 +91,5 @@ class HHParser:
 
 
 
-class HHHtmlParser:
-    @classmethod
-    def get_resumes_small(cls, html: str) -> tuple["ResumeSmall", ...]:
-        soup = BeautifulSoup(html)
-        resume_tables = soup.select(".applicant-resumes-card-wrapper")
-        return tuple(ResumeSmall(resume_table) for resume_table in resume_tables)
-
-    @classmethod
-    def get_xsrf_token(cls, html: str) -> str:
-        soup = BeautifulSoup(html)
-        return soup.select_one("input[name='_xsrf']").get('value')
-
-    @classmethod
-    def get_vk_login_button(cls, html: str):
-        soup = BeautifulSoup(html)
-        return soup.select_one("a.bloko-social-icon_vk")
 
 
-class ResumeSmall:
-    """
-        Краткое отображение резюме.
-        https://nn.hh.ru/applicant/resumes - берется от сюда
-    """
-    def __init__(self, tag: Tag):
-        self._tag = tag
-        self.id = self._tag.select_one("h3 a")['href'][8:46]
-        self.name = self._tag.select_one("h3").text
-        self.description = self._tag.select_one(".applicant-resumes-action.applicant-resumes-action_second").text
-        self.week_statistic = {
-            "search": self._tag.select_one("[data-qa='search-shows'] span:nth-child(1)").text,
-            "view": self._tag.select_one("[data-qa='count-new-views'] span:nth-child(1)").text,
-            "invite": self._tag.select_one("[data-qa='new-invitations'] span:nth-child(1)").text,
-        }
-
-    def __repr__(self):
-        return f"<ResumeSmall {self.id} | {self.name}>"
-
-
-class ResumeLarge:
-    """
-        Полное резюме
-    """
-    # TODO: Описать полное резюме
-    pass
