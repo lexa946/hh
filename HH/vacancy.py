@@ -1,6 +1,5 @@
 from bs4 import Tag
-from lxml import html
-
+import re
 
 class VacancySmall:
     """
@@ -9,9 +8,11 @@ class VacancySmall:
     """
     def __init__(self, tag: Tag):
         self._tag = tag
-        self._tree = html.fromstring(str(self._tag))
+
         self.name = self._tag.select_one("h2").text
-        self.link = self._tag.select_one("h2 a")['href']
+        self.link_more_info = self._tag.select_one("h2 a")['href']
+        self.link_response = self._tag.select_one("[data-qa='vacancy-serp__vacancy_response']")['href']
+        self.id = re.search(r"\d+", self.link_response)[0]
 
         experience_tag = self._tag.select_one("[data-qa='vacancy-serp__vacancy-work-experience']")
         self.experience = experience_tag.text if experience_tag else None
@@ -25,3 +26,8 @@ class VacancySmall:
 
     def __repr__(self):
         return f"<VacancySmall {self.name}>"
+
+
+class VacancyLarge:
+    # TODO: описать полную вакансию
+    pass

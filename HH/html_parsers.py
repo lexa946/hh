@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 
-from .resume import ResumeSmall
+from .resume import ResumeSmall, ResumeLarge
 from .vacancy import VacancySmall
 
 
@@ -10,7 +10,7 @@ def get_soup(method):
     :param method: метод декорирования
     """
     def _wrapper(cls, html: str):
-        soup = BeautifulSoup(html)
+        soup = BeautifulSoup(html, features="lxml")
         return method(cls, soup)
     return _wrapper
 
@@ -19,6 +19,12 @@ class HHHtmlParser:
     """
         Парсер необходимых данных из самого HTML
     """
+
+    @classmethod
+    @get_soup
+    def get_resume_large(cls, soup: BeautifulSoup) -> ResumeLarge:
+        resume_tag = soup.select_one(".resume-applicant")
+        return ResumeLarge(resume_tag)
 
 
     @classmethod
