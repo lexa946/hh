@@ -30,7 +30,8 @@ class HHHtmlParser:
     @classmethod
     @get_soup
     def get_vacancies_small(cls, soup: BeautifulSoup) -> tuple[VacancySmall, ...]:
-        vacancy_tables = soup.select(".vacancy-search-item__card")
+        # vacancy_tables = soup.select(".vacancy-search-item__card")
+        vacancy_tables = soup.select('[data-sentry-element="Element"]')
         return tuple(VacancySmall(vacancy_table) for vacancy_table in vacancy_tables)
 
 
