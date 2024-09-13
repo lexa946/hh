@@ -17,14 +17,17 @@ host = "https://hh.ru"
 hh_parser = HHParser(host)
 hh_parser.login(HH_LOGIN, HH_PASSWORD)
 my_resumes = hh_parser.get_resumes_small()
-developer_resume = my_resumes[1]
+for resume in my_resumes:
+    if "разработчик" in resume.name.lower():
+        developer_resume = resume
+        break
 
-count = 3 # Тут ставь число кратное 10, если 5 , значит отправит 50 откликов
+count = 10 # Тут ставь число кратное 10, если 5 , значит отправит 50 откликов
 
 
 
 
-while count > 0:
+while True:
     for vacancies in hh_parser.get_vacancies_small("Разработчик Python", only_in_title=True, from_IT_company=True):
         for vacancy in vacancies:
             try:
@@ -41,5 +44,7 @@ while count > 0:
             time.sleep(1)
 
         print(f"page {count}")
-        count -= 1
-
+        if count > 0:
+            count -= 1
+        else:
+            raise SystemExit

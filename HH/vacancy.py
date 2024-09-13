@@ -11,8 +11,11 @@ class VacancySmall:
 
         self.name = self._tag.select_one("h2").text
         self.link_more_info = self._tag.select_one("h2 a")['href']
-        self.link_response = self._tag.select_one("[data-qa='vacancy-serp__vacancy_response']")['href']
-        self.id = re.search(r"\d+", self.link_response)[0]
+
+        link_tag = self._tag.select_one("[data-qa='vacancy-serp__vacancy_response']")
+
+        self.link_response = link_tag['href'] if link_tag else ""
+        self.id = re.search(r"\d+", self.link_response)[0] if link_tag else ""
 
         experience_tag = self._tag.select_one("[data-qa='vacancy-serp__vacancy-work-experience']")
         self.experience = experience_tag.text if experience_tag else None

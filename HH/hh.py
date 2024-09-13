@@ -183,7 +183,7 @@ class HHParser:
 
 
             }, headers={"Accept": "application/json",})
-            response.raise_for_status()
+            # response.raise_for_status()
 
 
         return response.json()
